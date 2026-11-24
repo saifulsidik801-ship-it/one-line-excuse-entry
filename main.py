@@ -72,7 +72,14 @@ def main() -> None:
     path = os.path.join(out_dir, "entry.txt")
     with open(path, "w", encoding="utf-8") as f:
         f.write(ENTRY)
-    print(f"wrote {len(ENTRY)} characters to {path}")
+    # Read back and re-check the gate on the bytes actually written, so a
+    # truncated or re-encoded write can never slip through silently.
+    with open(path, "rb") as f:
+        written = f.read().decode("utf-8")
+    assert written == ENTRY, "entry.txt does not match the chosen line"
+    assert 1 <= len(written) <= 160, f"entry is {len(written)} characters"
+    assert "\n" not in written, "entry must be a single line"
+    print(f"wrote {len(written)} characters to {path} (verified)")
 
 
 if __name__ == "__main__":
